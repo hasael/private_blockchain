@@ -117,26 +117,33 @@ class Blockchain {
     submitStar(address, message, signature, star) {
         let self = this;
         return new Promise(async (resolve, reject) => {
-            let startTime = parseInt(message.split(':')[1]);
-            let currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
-            let verify = false;
-            //verify the timestamp is within last 5 minutes
-            if (!this._isCorrectTime(startTime, currentTime)) {
-                resolve(null);
-            }
             try {
-                verify = bitcoinMessage.verify(message, address, signature);
+
+
+                let startTime = parseInt(message.split(':')[1]);
+                let currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
+                let verify = false;
+
+                //verify the timestamp is within last 5 minutes
+                if (this._isCorrectTime(startTime, currentTime)) {
+
+                    verify = bitcoinMessage.verify(message, address, signature);
+
+
+                    if (verify) {
+
+                        resolve(this._addBlock({ star: star, owner: address }));
+                    }
+                    else {
+                        reject();
+                    }
+                }
+                else {
+                    reject();
+                }
             } catch (error) {
                 console.error(error);
                 reject(error);
-            }
-
-            if (verify) {
-
-                resolve(this._addBlock({ star: star, owner: address }));
-            }
-            else {
-                resolve(null);
             }
 
         });
@@ -167,12 +174,7 @@ class Blockchain {
     getBlockByHeight(height) {
         let self = this;
         return new Promise((resolve, reject) => {
-            let block = self.chain.filter(p => p.height === height)[0];
-            if (block) {
-                resolve(block);
-            } else {
-                resolve(null);
-            }
+            resolve(self.chain.find(p => p.height === height));
         });
     }
 

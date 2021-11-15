@@ -15,15 +15,16 @@ const hex2ascii = require('hex2ascii');
 class Block {
 
     // Constructor - argument data will be the object containing the transaction data
-	constructor(data, previousHash, height){
-		this.height = height;                                            // Block Height (consecutive number of each block)
-		this.body = Buffer.from(JSON.stringify(data)).toString('hex');   // Will contain the transactions stored in the block, by default it will encode the data
-		this.time = new Date().getTime().toString().slice(0, -3);                                              // Timestamp for the Block creation
-		this.previousBlockHash = previousHash;                              // Reference to the previous Block Hash
-		this.hash = this._calculateHash();                                           // Hash of the block
+    constructor(data, previousHash, height) {
+        this.height = height;                                            // Block Height (consecutive number of each block)
+        this.body = Buffer.from(JSON.stringify(data)).toString('hex');   // Will contain the transactions stored in the block, by default it will encode the data
+        this.time = new Date().getTime().toString().slice(0, -3);                                              // Timestamp for the Block creation
+        this.previousBlockHash = previousHash;                              // Reference to the previous Block Hash
+        this.hash = this._calculateHash();                                           // Hash of the block
     }
 
-    _calculateHash(){
+    _calculateHash() {
+        //calculating hash based on timestamp as well as data to avoid having different blocks with same star , inserted at different times , with the same hash
         return SHA256(`${this.body} - ${this.time}`).toString();
     }
     /**
@@ -42,11 +43,11 @@ class Block {
         let self = this;
         return new Promise((resolve, reject) => {
             // Save in auxiliary variable the current block hash
-                                            
+
             // Recalculate the hash of the Block
             // Comparing if the hashes changed
             // Returning the Block is not valid
-            
+
             // Returning the Block is valid
             resolve(self._calculateHash() == self.hash);
         });
@@ -67,8 +68,12 @@ class Block {
         // Parse the data to an object to be retrieve.
 
         // Resolve with the data if the object isn't the Genesis block
+        try {
 
-        return JSON.parse(hex2ascii(this.body));
+            return JSON.parse(hex2ascii(this.body));
+        } catch (error) {
+            reject(error);
+        }
     }
 
 }
