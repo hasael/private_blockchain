@@ -119,18 +119,13 @@ class Blockchain {
         return new Promise(async (resolve, reject) => {
             try {
 
-
                 let startTime = parseInt(message.split(':')[1]);
                 let currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
-                let verify = false;
 
                 //verify the timestamp is within last 5 minutes
                 if (this._isCorrectTime(startTime, currentTime)) {
 
-                    verify = bitcoinMessage.verify(message, address, signature);
-
-
-                    if (verify) {
+                    if (bitcoinMessage.verify(message, address, signature)) {
 
                         resolve(this._addBlock({ star: star, owner: address }));
                     }
