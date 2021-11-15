@@ -27,7 +27,7 @@ describe('block ', () => {
   it('should return star data and owner', async () => {
 
     const star = `"star": {
-        "dec": "68° 52' 56.9",
+        "dec": "68 52' 56.9",
         "ra": "16h 29m 1.0s",
         "story": "Testing the story 4"
     }`;
