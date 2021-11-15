@@ -70,7 +70,7 @@ class Blockchain {
                 block.previousBlockHash = this.chain[this.chain.length - 1].hash;
             }
             // SHA256 requires a string of data
-            block.hash = SHA256(block.body).toString();
+            block.hash = SHA256(`${block.body} - ${block.time}`).toString();
             if (this.height < 0) {
                 this.height = 1;
             }

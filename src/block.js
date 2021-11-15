@@ -38,7 +38,7 @@ class Block {
     validate() {
         let self = this;
         return new Promise((resolve, reject) => {
-            resolve(SHA256(self.body).toString() == self.hash);
+            resolve(SHA256(`${self.body} - ${self.time}`).toString() == self.hash);
             // Save in auxiliary variable the current block hash
                                             
             // Recalculate the hash of the Block
