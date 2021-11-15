@@ -122,8 +122,11 @@ class Blockchain {
             let startTime = parseInt(message.split(':')[1]);
             let currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
             let verify = false;
-            try {
+            if(!this._isCorrectTime(startTime, currentTime)){
+                resolve(null);
+            }
 
+            try {
                 verify = bitcoinMessage.verify(message, address, signature);
             } catch (error) {
                 console.error(error);
@@ -140,6 +143,10 @@ class Blockchain {
             }
 
         });
+    }
+
+    _isCorrectTime(previous, current){
+        return current - previous <= 300;
     }
 
     /**
