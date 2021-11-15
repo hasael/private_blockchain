@@ -8,7 +8,6 @@
  *  
  */
 
-const SHA256 = require('crypto-js/sha256');
 const BlockClass = require('./block.js');
 const bitcoinMessage = require('bitcoinjs-message');
 
@@ -35,8 +34,7 @@ class Blockchain {
      */
     async initializeChain() {
         if (this.height === -1) {
-            let block = new BlockClass.Block({ data: 'Genesis Block' });
-            await this._addBlock(block);
+            await this._addBlock({ data: 'Genesis Block' });
         }
     }
 
@@ -61,16 +59,16 @@ class Blockchain {
      * Note: the symbol `_` in the method name indicates in the javascript convention 
      * that this method is a private method. 
      */
-    _addBlock(block) {
+    _addBlock(data) {
         let self = this;
         return new Promise(async (resolve, reject) => {
 
+            let previousHash = null;
+            let height = -1;
             if (self.chain.length > 0) {
                 // previous block hash
-                block.previousBlockHash = this.chain[this.chain.length - 1].hash;
+                previousHash = this.chain[this.chain.length - 1].hash;
             }
-            // SHA256 requires a string of data
-            block.hash = SHA256(`${block.body} - ${block.time}`).toString();
             if (this.height < 0) {
                 this.height = 1;
             }
@@ -78,9 +76,10 @@ class Blockchain {
                 this.height++;
             }
             // add block to chain
-            block.height = this.height;
-            this.chain.push(block);
-            resolve();
+            height = this.height;
+            let newBlock = new BlockClass.Block(data, previousHash, height);
+            this.chain.push(newBlock);
+            resolve(newBlock);
         });
     }
 
@@ -95,7 +94,6 @@ class Blockchain {
     requestMessageOwnershipVerification(address) {
         return new Promise((resolve) => {
             resolve(`${address}:${new Date().getTime().toString().slice(0, -3)}:starRegistry`)
-
         });
     }
 
@@ -122,10 +120,10 @@ class Blockchain {
             let startTime = parseInt(message.split(':')[1]);
             let currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
             let verify = false;
-            if(!this._isCorrectTime(startTime, currentTime)){
+            //verify the timestamp is within last 5 minutes
+            if (!this._isCorrectTime(startTime, currentTime)) {
                 resolve(null);
             }
-
             try {
                 verify = bitcoinMessage.verify(message, address, signature);
             } catch (error) {
@@ -134,9 +132,8 @@ class Blockchain {
             }
 
             if (verify) {
-                let block = new BlockClass.Block({ star: star, owner: address });
-                this._addBlock(block);
-                resolve(block);
+
+                resolve(this._addBlock({ star: star, owner: address }));
             }
             else {
                 resolve(null);
@@ -145,7 +142,7 @@ class Blockchain {
         });
     }
 
-    _isCorrectTime(previous, current){
+    _isCorrectTime(previous, current) {
         return current - previous <= 300;
     }
 
@@ -214,7 +211,7 @@ class Blockchain {
             let previousHeight = null;
             let i = 0;
             for (i = 0; i < self.chain.length; i++) {
-                
+
                 let current = self.chain[i];
                 if (i > 0) {
                     if (previousHash != current.previousBlockHash) {

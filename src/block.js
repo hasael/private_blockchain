@@ -15,14 +15,17 @@ const hex2ascii = require('hex2ascii');
 class Block {
 
     // Constructor - argument data will be the object containing the transaction data
-	constructor(data){
-		this.hash = null;                                           // Hash of the block
-		this.height = 0;                                            // Block Height (consecutive number of each block)
+	constructor(data, previousHash, height){
+		this.height = height;                                            // Block Height (consecutive number of each block)
 		this.body = Buffer.from(JSON.stringify(data)).toString('hex');   // Will contain the transactions stored in the block, by default it will encode the data
 		this.time = new Date().getTime().toString().slice(0, -3);                                              // Timestamp for the Block creation
-		this.previousBlockHash = null;                              // Reference to the previous Block Hash
+		this.previousBlockHash = previousHash;                              // Reference to the previous Block Hash
+		this.hash = this._calculateHash();                                           // Hash of the block
     }
-    
+
+    _calculateHash(){
+        return SHA256(`${this.body} - ${this.time}`).toString();
+    }
     /**
      *  validate() method will validate if the block has been tampered or not.
      *  Been tampered means that someone from outside the application tried to change
@@ -38,7 +41,6 @@ class Block {
     validate() {
         let self = this;
         return new Promise((resolve, reject) => {
-            resolve(SHA256(`${self.body} - ${self.time}`).toString() == self.hash);
             // Save in auxiliary variable the current block hash
                                             
             // Recalculate the hash of the Block
@@ -46,7 +48,7 @@ class Block {
             // Returning the Block is not valid
             
             // Returning the Block is valid
-
+            resolve(self._calculateHash() == self.hash);
         });
     }
 
@@ -60,13 +62,13 @@ class Block {
      *     or Reject with an error.
      */
     getBData() {
-        return JSON.parse(hex2ascii(this.body));
         // Getting the encoded data saved in the Block
         // Decoding the data to retrieve the JSON representation of the object
         // Parse the data to an object to be retrieve.
 
         // Resolve with the data if the object isn't the Genesis block
 
+        return JSON.parse(hex2ascii(this.body));
     }
 
 }
