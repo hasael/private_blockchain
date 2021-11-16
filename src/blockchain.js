@@ -127,7 +127,13 @@ class Blockchain {
 
                     if (bitcoinMessage.verify(message, address, signature)) {
 
-                        resolve(this._addBlock({ star: star, owner: address }));
+                        let errors = await this.validateChain();
+                        if(errors.length > 0){
+                            reject(errors);
+                        }
+                        else{
+                            resolve(this._addBlock({ star: star, owner: address }));
+                        }
                     }
                     else {
                         reject();
